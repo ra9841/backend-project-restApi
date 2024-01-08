@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 //@EnableCaching    //before running application run your redis server.Until & unless you do not close your redis server, data were saved in redis server otherwise put time limit on properties file
 public class UserController {
 

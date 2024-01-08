@@ -8,12 +8,14 @@ import com.rabin.redispractiseproject.repository.CustomerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 @Slf4j
 @Service
@@ -44,7 +46,7 @@ public class CustomerServiceImpl implements CustomerService {
             // Convert email to lowercase for case-insensitive check
             String lowercaseEmail = customerDto.getEmail().toLowerCase();
 
-            // Validate other customer information, e.g., password strength, etc.
+            // Validate other customer information,
             validateCustomerInfo(customerDto);
 
             Optional<Customer> existCustomer = customerRepository.findByEmail(lowercaseEmail);
@@ -62,7 +64,7 @@ public class CustomerServiceImpl implements CustomerService {
             customer.setCreateDt(new Date());
 
             // Apply business logic to determine the role based on age
-            int age = calculateAge(customerDto.getBirthDate()); // Assuming you have the birth date in the DTO
+            int age = calculateAge(customerDto.getBirthDate());
             customer.setRole(determineRoleBasedOnAge(age));
 
             customerRepository.save(customer);
@@ -85,10 +87,11 @@ public class CustomerServiceImpl implements CustomerService {
         }
     }
 
+
+
     // Add a method to calculate age based on the birth date
     private int calculateAge(Date birthDate) {
-        // Implement your logic to calculate the age based on the birth date
-        // This is just a placeholder; you should replace it with your own implementation
+        // Implementing logic to calculate the age based on the birth date
         Calendar today = Calendar.getInstance();
         Calendar birthCalendar = Calendar.getInstance();
         birthCalendar.setTime(birthDate);
@@ -126,7 +129,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     // Add a method to validate other customer information
-    private void validateCustomerInfo(CustomerDto customerDto) throws InvalidCustomerInfoException {
+    private void validateCustomerInfo(CustomerDto customerDto) {
         // Implement your validation logic for other customer information, e.g., name validation, etc.
         // Throw an exception if the information is invalid
         if (customerDto.getName() == null || customerDto.getName().isEmpty()) {
@@ -155,4 +158,33 @@ public class CustomerServiceImpl implements CustomerService {
             throw new InvalidPasswordException("Password must be at least 10 characters long, contain at least one special character, one uppercase letter, and one digit (hard)");
         }
     }
+
+
+    @Override
+    public List<CustomerDto> listOfRecordFromDataBase() {
+        List<Customer> customers = customerRepository.findAll();
+        return customers.stream().map(customer -> {
+            CustomerDto customerDto = new CustomerDto();
+            BeanUtils.copyProperties(customer, customerDto);
+            return customerDto;
+        }).toList();
+    }
+
+    @Override
+    public CustomerDto getUserDetailsAfterLogin(Authentication authentication) {
+        Optional<Customer> existCustomer = customerRepository.findByEmail(authentication.getName());
+        if (existCustomer.isPresent()) {
+            Customer customer = existCustomer.get();
+            CustomerDto customerDto = new CustomerDto();
+            BeanUtils.copyProperties(customer, customerDto);
+            return customerDto;
+        } else {
+            return null;
+        }
+    }
+
+
+
+
+
 }
